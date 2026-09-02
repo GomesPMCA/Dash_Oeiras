@@ -103,53 +103,56 @@ if pagina == "🔍 Ficha / Consulta por Entrevista":
 
     visita = df_filtrado_data.iloc[st.session_state.indice_entrevista]
 
-# --- MÍDIAS NA BARRA LATERAL (VÍDEO DE APOIO E FOTO/VÍDEO DA CASA) ---
+    # --- MÍDIAS NA BARRA LATERAL (BUSCA MAIS ROBUSTA) ---
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 🎥 Vídeo de Apoio")
-    video_apoio = visita['caminho_video_apoio']
+    video_apoio = str(visita['caminho_video_apoio'])
 
-    if video_apoio and video_apoio not in ["Não enviado", "Pular"]:
-        # Extrai apenas o nome do arquivo (ex: apoio_123.mp4)
-        nome_arquivo_v = os.path.basename(str(video_apoio))
+    if video_apoio and video_apoio not in ["None", "NaN", "Não enviado", "Pular"]:
+        # Limpa o caminho do Windows e pega apenas o nome base
+        nome_limpo_v = os.path.basename(video_apoio.replace('\\', '/'))
         
-        # Testa se o arquivo existe na pasta da mídia ou na raiz
-        caminho_v1 = os.path.join("midias_visitas_v2", nome_arquivo_v)
-        caminho_v2 = nome_arquivo_v
+        # Procura em todas as pastas possíveis
+        pastas_busca = [".", "midias_visitas_v2"]
+        encontrado_v = None
         
-        if os.path.exists(caminho_v1):
-            st.sidebar.video(caminho_v1)
-        elif os.path.exists(caminho_v2):
-            st.sidebar.video(caminho_v2)
+        for pasta in pastas_busca:
+            caminho_teste = os.path.join(pasta, nome_limpo_v)
+            if os.path.exists(caminho_teste):
+                encontrado_v = caminho_teste
+                break
+        
+        if encontrado_v:
+            st.sidebar.video(encontrado_v)
         else:
-            st.sidebar.caption("Nenhum vídeo encontrado no servidor.")
+            st.sidebar.caption("Nenhum vídeo de apoio localizado.")
     else:
         st.sidebar.caption("Nenhum vídeo registrado para esta visita.")
 
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 🖼️ Mídia da Casa")
-    midia_casa = visita['caminho_midia_casa']
+    midia_casa = str(visita['caminho_midia_casa'])
 
-    if midia_casa:
-        # Extrai apenas o nome do arquivo (ex: casa_123.jpg)
-        nome_arquivo_m = os.path.basename(str(midia_casa))
+    if midia_casa and midia_casa not in ["None", "NaN"]:
+        # Limpa o caminho do Windows e pega apenas o nome base
+        nome_limpo_m = os.path.basename(midia_casa.replace('\\', '/'))
         
-        # Testa se o arquivo existe na pasta da mídia ou na raiz
-        caminho_m1 = os.path.join("midias_visitas_v2", nome_arquivo_m)
-        caminho_m2 = nome_arquivo_m
+        pastas_busca = [".", "midias_visitas_v2"]
+        encontrado_m = None
         
-        caminho_encontrado = None
-        if os.path.exists(caminho_m1):
-            caminho_encontrado = caminho_m1
-        elif os.path.exists(caminho_m2):
-            caminho_encontrado = caminho_m2
-
-        if caminho_encontrado:
-            if caminho_encontrado.lower().endswith(('.jpg', '.jpeg', '.png')):
-                st.sidebar.image(caminho_encontrado, use_container_width=True)
-            elif caminho_encontrado.lower().endswith(('.mp4', '.mov', '.avi')):
-                st.sidebar.video(caminho_encontrado)
+        for pasta in pastas_busca:
+            caminho_teste = os.path.join(pasta, nome_limpo_m)
+            if os.path.exists(caminho_teste):
+                encontrado_m = caminho_teste
+                break
+        
+        if encontrado_m:
+            if encontrado_m.lower().endswith(('.jpg', '.jpeg', '.png')):
+                st.sidebar.image(encontrado_m, use_container_width=True)
+            elif encontrado_m.lower().endswith(('.mp4', '.mov', '.avi')):
+                st.sidebar.video(encontrado_m)
         else:
-            st.sidebar.caption("📷 Foto/Vídeo da casa não encontrado.")
+            st.sidebar.caption(f"📷 Arquivo '{nome_limpo_m}' não encontrado.")
     else:
         st.sidebar.caption("📷 Foto/Vídeo da casa não encontrado.")
 
