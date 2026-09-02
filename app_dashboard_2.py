@@ -103,27 +103,55 @@ if pagina == "🔍 Ficha / Consulta por Entrevista":
 
     visita = df_filtrado_data.iloc[st.session_state.indice_entrevista]
 
-    # --- MÍDIAS NA BARRA LATERAL (VÍDEO DE APOIO E FOTO/VÍDEO DA CASA LOGO ABAIXO) ---
+# --- MÍDIAS NA BARRA LATERAL (VÍDEO DE APOIO E FOTO/VÍDEO DA CASA) ---
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 🎥 Vídeo de Apoio")
     video_apoio = visita['caminho_video_apoio']
-    if video_apoio and os.path.exists(video_apoio) and video_apoio not in ["Não enviado", "Pular"]:
-        st.sidebar.video(video_apoio)
+
+    if video_apoio and video_apoio not in ["Não enviado", "Pular"]:
+        # Extrai apenas o nome do arquivo (ex: apoio_123.mp4)
+        nome_arquivo_v = os.path.basename(str(video_apoio))
+        
+        # Testa se o arquivo existe na pasta da mídia ou na raiz
+        caminho_v1 = os.path.join("midias_visitas_v2", nome_arquivo_v)
+        caminho_v2 = nome_arquivo_v
+        
+        if os.path.exists(caminho_v1):
+            st.sidebar.video(caminho_v1)
+        elif os.path.exists(caminho_v2):
+            st.sidebar.video(caminho_v2)
+        else:
+            st.sidebar.caption("Nenhum vídeo encontrado no servidor.")
     else:
         st.sidebar.caption("Nenhum vídeo registrado para esta visita.")
 
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 🖼️ Mídia da Casa")
     midia_casa = visita['caminho_midia_casa']
-    if midia_casa and os.path.exists(midia_casa):
-        if midia_casa.lower().endswith(('.jpg', '.jpeg', '.png')):
-            st.sidebar.image(midia_casa, use_container_width=True)
-        elif midia_casa.lower().endswith(('.mp4', '.mov', '.avi')):
-            st.sidebar.video(midia_casa)
+
+    if midia_casa:
+        # Extrai apenas o nome do arquivo (ex: casa_123.jpg)
+        nome_arquivo_m = os.path.basename(str(midia_casa))
+        
+        # Testa se o arquivo existe na pasta da mídia ou na raiz
+        caminho_m1 = os.path.join("midias_visitas_v2", nome_arquivo_m)
+        caminho_m2 = nome_arquivo_m
+        
+        caminho_encontrado = None
+        if os.path.exists(caminho_m1):
+            caminho_encontrado = caminho_m1
+        elif os.path.exists(caminho_m2):
+            caminho_encontrado = caminho_m2
+
+        if caminho_encontrado:
+            if caminho_encontrado.lower().endswith(('.jpg', '.jpeg', '.png')):
+                st.sidebar.image(caminho_encontrado, use_container_width=True)
+            elif caminho_encontrado.lower().endswith(('.mp4', '.mov', '.avi')):
+                st.sidebar.video(caminho_encontrado)
+        else:
+            st.sidebar.caption("📷 Foto/Vídeo da casa não encontrado.")
     else:
         st.sidebar.caption("📷 Foto/Vídeo da casa não encontrado.")
-
-    st.markdown("---")
 
     # --- CABEÇALHO DA FICHA ---
     col_c1, col_c2, col_c3 = st.columns(3)
